@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="TBA_TOOLS" label="TBA TOOLS">
+    <memberTool name="EV_Rename"/>
+  </toolshelf>
+
+  <tool name="EV_Rename" label="Farm Prep" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import os
+
+#Allow edit of contents in Cache Nodes
+cachenodes = hou.objNodeTypeCategory().nodeType('geo').instances()
+
+for node in cachenodes:
+    potential_cache_nodes = node.glob('*_FarmCache')
+
+    for cachenode in potential_cache_nodes:
+        cachenode.allowEditingOfContents(True)
+        
+        
+def process_node_types(nodes_parms_process):
+
+    for config in nodes_parms_process:
+        obj_type = config.get("obj")
+        node_type = config.get("node")
+        parm_name = config.get("parm")
+       
+            
+        if obj_type == "geo":
+            nodes = hou.sopNodeTypeCategory().nodeType(node_type).instances()
+        
+        if obj_type == "matnet":
+            nodes = hou.vopNodeTypeCategory().nodeType(node_type).instances()
+        
+        if nodes:
+            for node in nodes:
+                parm = node.parm(parm_name)
+
+                if parm:
+                    current_value = parm.eval()
+                    expanded_value = os.path.expandvars(current_value)
+                    parm.set(expanded_value)
+        else:
+            print(f"No nodes of type '{node_type}' found.")
+
+# Example usage:
+nodes_parms_process = [
+    {"obj":"geo","node": "file", "parm": "file"},
+    {"obj":"geo","node": "alembic", "parm": "fileName"},
+    {"obj":"geo","node": "filecache::2.0", "parm": "basedir"},
+    {"obj":"geo","node": "filecache::2.0", "parm": "file"},
+]
+process_node_types(nodes_parms_process) 
+]]></script>
+  </tool>
+</shelfDocument>
